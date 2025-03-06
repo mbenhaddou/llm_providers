@@ -24,32 +24,32 @@ config = LLMConfig(
 #     max_tokens=500
 # )
 #
-
-config = LLMConfig(
-    api_key=os.getenv("ANTHROPIC_API_KEY"),
-    model_name="claude-3-5-sonnet-latest"
-)
-# client = ClaudeClient(config)
 #
-input = LLMInput(
-    prompt="EYou are a physics professor. Explain quantum computing",
-#    system_prompt="You are a physics professor",
-    temperature=0.7,
-    max_tokens=1000
-)
+# config = LLMConfig(
+#     api_key=os.getenv("ANTHROPIC_API_KEY"),
+#     model_name="claude-3-5-sonnet-latest"
+# )
+# # client = ClaudeClient(config)
+# #
+# input = LLMInput(
+#     prompt="EYou are a physics professor. Explain quantum computing",
+# #    system_prompt="You are a physics professor",
+#     temperature=0.7,
+#     max_tokens=1000
+# )
+# #
+# # response = client.generate(input)
+# #
+# # print(response)
 #
-# response = client.generate(input)
 #
-# print(response)
-
-
-config = LLMConfig(
-    api_key=os.getenv("GOOGLE_API_KEY"),
-    model_name="gemini-1.5-pro",
-    safety_settings={
-        "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE"
-    }
-)
+# config = LLMConfig(
+#     api_key=os.getenv("GOOGLE_API_KEY"),
+#     model_name="gemini-1.5-pro",
+#     safety_settings={
+#         "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE"
+#     }
+# )
 # client = GeminiClient(config)
 #
 #

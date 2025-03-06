@@ -11,7 +11,6 @@ from llmfusion.providers.configs.model_global_configs import GlobalModelConfig
 from llmfusion.utils.diskcache_ import diskcache_memoize
 
 
-
 class DeepSeekClient(BaseLLM):
     def __init__(self, config: LLMConfig):
         super().__init__(config)
@@ -39,17 +38,16 @@ class DeepSeekClient(BaseLLM):
                 field="max_tokens"
             )
 
-    @diskcache_memoize(expire_tag="deepseek_completion", size_gib="medium")
-    def generate(self, input: LLMInput) -> str:
-        """Generate text completion with caching"""
-        return self._uncached_generate(input)
-
-    async def agenerate(self, input: LLMInput) -> str:
-        """Async generation"""
-        return await self._uncached_agenerate(input)
+    def _build_messages(self, input: LLMInput) -> list[dict]:
+        """Build messages list for API request"""
+        messages = []
+        if input.system_prompt:
+            messages.append({"role": "system", "content": input.system_prompt})
+        messages.append({"role": "user", "content": input.prompt})
+        return messages
 
     def _uncached_generate(self, input: LLMInput) -> str:
-        """Actual sync generation logic"""
+        """Actual sync generation logic without caching"""
         self._validate_input(input)
         try:
             response = self.client.chat.completions.create(
@@ -64,8 +62,33 @@ class DeepSeekClient(BaseLLM):
         except (APIConnectionError, APIError) as e:
             raise ProviderError(f"DeepSeek API error: {str(e)}") from e
 
+    @diskcache_memoize(expire_tag="deepseek_completion", size_gib="medium")
+    def _generate_cached(self, input: LLMInput) -> str:
+        """Cached version of generation logic"""
+        return self._uncached_generate(input)
+
+    def generate(self, input: LLMInput, read_cache: bool = True) -> str:
+        """
+        Generate text completion with optional caching.
+
+        Args:
+            input: An LLMInput instance containing the prompt and other settings.
+            read_cache: When False, bypasses cache and makes a fresh API call.
+
+        Returns:
+            Generated text content as a string.
+        """
+        if read_cache:
+            return self._generate_cached(input)
+        else:
+            return self._uncached_generate(input)
+
+    async def agenerate(self, input: LLMInput) -> str:
+        """Async generation"""
+        return await self._uncached_agenerate(input)
+
     async def _uncached_agenerate(self, input: LLMInput) -> str:
-        """Actual async generation logic"""
+        """Actual async generation logic without caching"""
         self._validate_input(input)
         try:
             response = await self.async_client.chat.completions.create(
@@ -98,11 +121,3 @@ class DeepSeekClient(BaseLLM):
             raise RateLimitError(f"DeepSeek rate limit: {str(e)}") from e
         except (APIConnectionError, APIError) as e:
             raise ProviderError(f"DeepSeek API error: {str(e)}") from e
-
-    def _build_messages(self, input: LLMInput) -> list[dict]:
-        """Build messages list for API request"""
-        messages = []
-        if input.system_prompt:
-            messages.append({"role": "system", "content": input.system_prompt})
-        messages.append({"role": "user", "content": input.prompt})
-        return messages

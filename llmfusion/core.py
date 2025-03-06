@@ -28,7 +28,6 @@ class LLMProvider:
         )
 
         # Initialize the provider client
-
         self.client = self._get_client(provider, self.config)
 
     def _get_client(self, provider: ProviderType, config: LLMConfig):
@@ -48,16 +47,27 @@ class LLMProvider:
             self,
             prompt: str,
             system_prompt: Optional[str] = None,
+            read_cache: bool = True,
             **kwargs
     ) -> str:
-        """Get completion from the provider."""
+        """Get completion from the provider.
+
+        Args:
+            prompt: The prompt text.
+            system_prompt: Optional system prompt.
+            read_cache: When False, bypasses the cache and forces a fresh API call.
+            **kwargs: Additional parameters (e.g., temperature, max_tokens).
+
+        Returns:
+            Generated text completion.
+        """
         input = LLMInput(
             prompt=prompt,
             system_prompt=system_prompt,
             temperature=kwargs.get("temperature", 0.7),
             max_tokens=kwargs.get("max_tokens", 1000)
         )
-        return self.client.generate(input)
+        return self.client.generate(input, read_cache=read_cache)
 
     async def aget_completion(
             self,
